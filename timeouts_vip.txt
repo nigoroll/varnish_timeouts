@@ -157,3 +157,7 @@ Timeouts to expose:
 In other words, everything except cli_resp_timeout and thread_pool_timeout.
 
 For client_*_timeout, would they ideally be accessible from a new vcl_sess subroutine?
+
+### XXX ESI
+
+TODO: Define how timeouts apply recursively to subrequests
