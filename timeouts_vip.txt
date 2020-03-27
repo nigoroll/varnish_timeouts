@@ -58,13 +58,74 @@ New timeouts should have a default value of zero (no timeout) to maintain existi
 
 Taken from past and current discussions.
 
-### The current idle_send_timeout "overflow"
+### issues with idle_send_timeout (old name) / resp_idle_timeout (new name)
 
-Dynamically adjust SO_SNDTIMEO and cache its value to minimize the number of system calls, in order to avoid the case where resp_idle_timeout accidentally extends resp_send_timeout.
+current defaults:
 
-Default resp_idle_timeout to resp_send_timeout / 2, limit to resp_send_timeout. dridi: we don't have consensus on this point.
+- idle_send_timeout (old) / resp_idle_timeout (new) : 60s
+- send_timeout (old) / resp_send_timeout (new): 600s
 
-Refuse to param.set a resp_idle_timeout larger than resp_send_timeout. There may be other timeouts limiting the maximum value of other timeouts if some of the suggested new timeouts are added. We now have a framework in place to better deal with parameters dynamic bounds (#3099).
+current behavior:
+
+(resp_)?send_timeout is our actual timeout from the user
+perspective. idle_send_timeout/resp_idle_timeout is used to set
+SO_SNDTIMEO, so individual writev() calls time out after that time.
+
+issues:
+
+- idle_send_timeout/resp_idle_timeout is hard to understand and causes
+  confusion.
+
+  The new names might help improve on that, yet a new clash might also
+  be introduced with backend_idle_timeout / client_idle_timeout (which
+  define the time to wait for another request) and pipe_idle_timeout
+  (which defines the time to wait for more data).
+
+- what should it be set to?
+
+  Users might ask themselves: what is a good value? Many users
+  probably will not set it at all or set it to arbitrarily bad values.
+
+- can extend (resp_)?send_timeout
+
+  for the case of a write just before (resp_)?send_timeout, that
+  actually gets extended by idle_send_timeout/resp_idle_timeout
+
+- are we actually saving syscalls?
+
+  We currently set SO_SNDTIMEOUT just once per session (if not updated
+  in vcl). For the case where we actually reach (resp_)?send_timeout,
+  we will retry (with the default values) a write 10 times.
+
+  So we save syscalls for the fast path, yet not for the slow/error path.
+
+suggestion:
+
+For the first three reasons given above, we suggest to drop
+idle_send_timeout/resp_idle_timeout altogether. The timeout should
+(resp_)?send_timeout and that's it.
+
+A trivial approach would, before any write, calculate the remaining
+time until (resp_)?send_timeout is reached and set SO_SNDTIMEO
+accordingly.
+
+This would add additional syscalls to the fast path, which we want to
+avoid. Yet in order to stay within (resp_)?send_timeout, we would need
+to update SO_SNDTIMEO after the first write at the latest.
+
+As a compromise, we suggest a divide-and-conquer strategy:
+
+* initially, set SO_SNDTIMEO to (resp_)?send_timeout / 2 and remember
+  a mono timestamp when that timeout would fire
+
+* before each write, check if the time SO_SNDTIMEO would fire is past
+  the deadline from (resp_)?send_timeout and, if yes, set SO_SNDTIMEO
+  half the remaining time again (with some lower bound at which
+  halving is stopped, e.g. 1 second).
+
+This way, the fast path will be unaffected and not include additional
+syscalls, yet the divide-and-conquer strategy will result in less
+syscalls overall than a fixed (low) SO_SNDTIMEO.
 
 ### Expose all relevant timeouts to VCL
 
