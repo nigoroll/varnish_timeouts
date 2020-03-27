@@ -1,0 +1,98 @@
+Ref https://github.com/varnishcache/varnish-cache/pull/2983
+
+# Draft
+
+## Consistent timeout naming
+
+In the form of: ${subject}_${type}_timeout
+
+Subjects:
+
+- client (client session)
+- backend (backend transaction)
+- bereq (dridi: didn't add this because this subject doesn't exist with current timeouts)
+- beresp
+- req (dridi: didn't add this because this subject doesn't exist with current timeouts)
+- resp
+- pipe
+- cli
+
+We might want to consider new timeouts too, especially for bereq.
+
+Types:
+
+- recv/send (individual operations)
+- total
+- idle
+- linger
+- ...
+
+## Mapping existing timeouts
+
+In alphabetic order:
+
+- backend_idle_timeout => no change
+- between_bytes_timeout => beresp_recv_timeout
+- cli_timeout => cli_resp_timeout
+- connect_timeout => backend_connect_timeout
+- first_byte_timeout => beresp_firstbyte_timeout
+- idle_send_timeout => resp_idle_timeout ### XXX NILS
+- pipe_timeout => pipe_idle_timeout dridi: it encompasses both recv and send, so idle
+- send_timeout => resp_send_timeout
+- thread_pool_timeout => no change
+- timeout_idle => client_idle_timeout
+- timeout_linger => client_linger_timeout
+
+The goal besides consistent naming is to also increase clarity regarding the role of each timeout, and make it easier for new timeouts to be added in this model. It should also help better define how they relate to the differences between http/1 and h2, or in broader terms http/1 and stream-based protocols.
+
+## New timeouts to consider
+
+- bereq_send_timeout (suggested by slink. dridi: can slow clients DoS a backend with request bodies today? dridi: the answer is yes)
+- req_fetch_timeout (for std.cache_req_body? getting the whole request on the client side dridi: may also affect the fetch, see above (for no cache_req_body (yes)))
+- beresp_fetch_timeout (VS end-user case)
+- pipe_sess_timeout (VS end-user case)
+
+New timeouts should have a default value of zero (no timeout) to maintain existing behavior.
+
+## Other considerations
+
+Taken from past and current discussions.
+
+### The current idle_send_timeout "overflow"
+
+Dynamically adjust SO_SNDTIMEO and cache its value to minimize the number of system calls, in order to avoid the case where resp_send_timeout accidentally extends resp_total_timeout.
+
+Default resp_send_timeout to send_timeout / 2, limit to resp_total_timeout. dridi: we don't have consensus on this point.
+
+Refuse to param.set a resp_send_timeout larger than resp_total_timeout. There may be other timeouts limiting the maximum value of other timeouts if some of the suggested new timeouts are added. We now have a framework in place to better deal with parameters dynamic bounds (#3099).
+
+### Expose all relevant timeouts to VCL
+
+The title of this section doesn't leave much to say here, yet.
+
+The VCL versions 4.0 and 4.1 need to support the established timeout names as aliases to the new ones.
+
+Timeouts to expose:
+
+
+- backend_connect_timeout
+- backend_idle_timeout 
+- backend_task_timeout
+- bereq_send_timeout
+- beresp_firstbyte_timeout
+- beresp_recv_timeout
+- beresp_fetch_timeout
+- client_idle_timeout
+- client_linger_timeout
+- client_task_timeout
+- cli_resp_timeout => no
+- pipe_idle_timeout
+- pipe_sess_timeout
+- req_fetch_timeout
+- resp_idle_timeout
+- resp_send_timeout
+- thread_pool_timeout => no
+
+In other words, everything except cli_resp_timeout and thread_pool_timeout.
+
+For client_*_timeout, would they ideally be accessible from a new vcl_sess subroutine?
