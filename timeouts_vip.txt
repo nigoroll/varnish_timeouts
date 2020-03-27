@@ -60,11 +60,11 @@ Taken from past and current discussions.
 
 ### The current idle_send_timeout "overflow"
 
-Dynamically adjust SO_SNDTIMEO and cache its value to minimize the number of system calls, in order to avoid the case where resp_idle_timeout accidentally extends resp_total_timeout.
+Dynamically adjust SO_SNDTIMEO and cache its value to minimize the number of system calls, in order to avoid the case where resp_idle_timeout accidentally extends resp_send_timeout.
 
-Default resp_idle_timeout to resp_send_timeout / 2, limit to resp_total_timeout. dridi: we don't have consensus on this point.
+Default resp_idle_timeout to resp_send_timeout / 2, limit to resp_send_timeout. dridi: we don't have consensus on this point.
 
-Refuse to param.set a resp_idle_timeout larger than resp_total_timeout. There may be other timeouts limiting the maximum value of other timeouts if some of the suggested new timeouts are added. We now have a framework in place to better deal with parameters dynamic bounds (#3099).
+Refuse to param.set a resp_idle_timeout larger than resp_send_timeout. There may be other timeouts limiting the maximum value of other timeouts if some of the suggested new timeouts are added. We now have a framework in place to better deal with parameters dynamic bounds (#3099).
 
 ### Expose all relevant timeouts to VCL
 
