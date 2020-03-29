@@ -21,8 +21,8 @@ We might want to consider new timeouts too, especially for bereq.
 
 Types:
 
-- recv/send (individual operations)
-- total
+- send
+- fetch
 - idle
 - linger
 - ...
@@ -32,12 +32,12 @@ Types:
 In alphabetic order:
 
 - backend_idle_timeout => no change
-- between_bytes_timeout => beresp_recv_timeout
+- between_bytes_timeout => beresp_idle_timeout
 - cli_timeout => cli_resp_timeout
 - connect_timeout => backend_connect_timeout
 - first_byte_timeout => beresp_firstbyte_timeout
 - idle_send_timeout => resp_idle_timeout ### XXX NILS
-- pipe_timeout => pipe_idle_timeout dridi: it encompasses both recv and send, so idle
+- pipe_timeout => pipe_idle_timeout
 - send_timeout => resp_send_timeout
 - thread_pool_timeout => no change
 - timeout_idle => client_idle_timeout
@@ -141,7 +141,7 @@ Timeouts to expose:
 - backend_task_timeout
 - bereq_send_timeout
 - beresp_firstbyte_timeout
-- beresp_recv_timeout
+- beresp_idle_timeout
 - beresp_fetch_timeout
 - client_idle_timeout
 - client_linger_timeout
