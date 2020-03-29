@@ -10,14 +10,12 @@ Subjects:
 
 - client (client session)
 - backend (backend transaction)
-- bereq (dridi: didn't add this because this subject doesn't exist with current timeouts)
 - beresp
-- req (dridi: didn't add this because this subject doesn't exist with current timeouts)
 - resp
 - pipe
 - cli
 
-We might want to consider new timeouts too, especially for bereq.
+We might want to consider new timeouts too, especially for req and bereq (see below).
 
 Types:
 
