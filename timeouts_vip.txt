@@ -50,7 +50,7 @@ The goal besides consistent naming is to also increase clarity regarding the rol
 - beresp_fetch_timeout (VS end-user case)
 - pipe_sess_timeout (VS end-user case)
 
-New timeouts should have a default value of zero (no timeout) to maintain existing behavior.
+New timeouts could have a default value of zero (no timeout) to maintain existing behavior.
 
 ## Other considerations
 
