@@ -19,6 +19,7 @@ my %types = (
     'recv'	=> [qw(
 		    start
 		    fetch
+		    read
 		    )],
 
     'pipe'	=> [qw(
@@ -40,11 +41,11 @@ my %subjs = (
 # from ## Mapping existing timeouts
 my %old2new = (
     'backend_idle_timeout' => 'backend_idle_timeout',
-    'between_bytes_timeout' => 'beresp_idle_timeout',
+    'between_bytes_timeout' => 'beresp_read_timeout',
     'cli_timeout' => 'cli_resp_timeout',
     'connect_timeout' => 'backend_connect_timeout',
     'first_byte_timeout' => 'beresp_start_timeout',
-    'idle_send_timeout' => 'resp_idle_timeout',
+    'idle_send_timeout' => undef,
     'pipe_timeout' => 'pipe_idle_timeout',
     'send_timeout' => 'resp_send_timeout',
     'thread_pool_timeout' => 'thread_pool_timeout',
@@ -52,7 +53,9 @@ my %old2new = (
     'timeout_linger' => 'client_linger_timeout'
     );
 
-my %new2old = map {$old2new{$_} => $_} keys %old2new;
+my @old = keys %old2new;
+my %new2old = map { defined($old2new{$_}) ? ($old2new{$_} => $_) : ()} @old;
+my @removed = grep {! defined($old2new{$_})} @old;
 
 # from ## New timeouts to consider
 my %new = map {$_ => '(new)'}
@@ -65,8 +68,6 @@ my %new = map {$_ => '(new)'}
 
 my @controversial = (qw(
     pipe_idle_timeout
-    beresp_idle_timeout
-    resp_idle_timeout
     ));
 
 my %seen;
@@ -89,6 +90,12 @@ for my $s (sort keys %subjs) {
 }
 
 my $line = 0;
+for my $n (sort @removed) {
+    printf("\nREMOVED:\n") if ($line++ == 0);
+    printf("%s\n", $n);
+}
+
+$line = 0;
 for my $n (sort @controversial) {
     printf("\nCONTROVERSIAL:\n") if ($line++ == 0);
     printf("%s\n", $n);

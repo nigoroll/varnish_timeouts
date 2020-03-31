@@ -4,19 +4,22 @@ backend_connect_timeout  connect_timeout
 backend_idle_timeout     backend_idle_timeout
 bereq_send_timeout       (new)
 beresp_fetch_timeout     (new)
+beresp_read_timeout      between_bytes_timeout
 beresp_start_timeout     first_byte_timeout
 client_idle_timeout      timeout_idle
 client_linger_timeout    timeout_linger
 pipe_idle_timeout        pipe_timeout
 pipe_sess_timeout        (new)
 req_fetch_timeout        (new)
+req_read_timeout         x
 req_start_timeout        x
 resp_send_timeout        send_timeout
 
+REMOVED:
+idle_send_timeout
+
 CONTROVERSIAL:
-beresp_idle_timeout
 pipe_idle_timeout
-resp_idle_timeout
 
 OTHER:
 cli_resp_timeout
