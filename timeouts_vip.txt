@@ -30,7 +30,7 @@ Types:
 In alphabetic order:
 
 - backend_idle_timeout => no change
-- between_bytes_timeout => beresp_idle_timeout
+- between_bytes_timeout => beresp_read_timeout
 - cli_timeout => cli_resp_timeout
 - connect_timeout => backend_connect_timeout
 - first_byte_timeout => beresp_start_timeout
@@ -136,7 +136,7 @@ If we keep idle_send_timeout as resp_idle_timeout we will also need more
 "idle" timeouts for req_fetch_timeout and bereq_send_timeout.
 
 Because historically we have given control over between_bytes_timeout,
-its successor beresp_idle_timeout should remain.
+its successor beresp_read_timeout should remain.
 
 ### Expose all relevant timeouts to VCL
 
@@ -152,7 +152,7 @@ Below is the complete list of suggested timeouts:
 - backend_task_timeout
 - bereq_send_timeout
 - beresp_start_timeout
-- beresp_idle_timeout
+- beresp_read_timeout
 - beresp_fetch_timeout
 - client_idle_timeout
 - client_linger_timeout
