@@ -62,7 +62,7 @@ existing behavior.
 
 Taken from past and current discussions.
 
-### Issues with idle_send_timeout
+### Issues with idle_send_timeout / resp_write_timeout
 
 Current defaults:
 
