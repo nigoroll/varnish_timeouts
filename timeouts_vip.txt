@@ -197,9 +197,10 @@ req.fetch_timeout.
 Likewise for ESI, resp.send_timeout at esi level 0 is the time for the
 entirety of the ESI response. At lower levels, it is the time
 (remaining) for that sub-request and all below. We are aware that
-these calculations are affected by buffering, in that a lower level
-vcl_deliver may be called as soon as bytes to send have been handed
-to the kernel or buffered by some lower level protocol like QUIC.
+these calculations are affected by buffering, in that a higher ESI
+level vcl_deliver may be called as soon as bytes to send have been
+handed to the kernel or buffered by some lower level protocol like
+QUIC.
 
 ### Additional timeouts can be implemented in VCL
 
