@@ -41,16 +41,22 @@ In alphabetic order:
 - timeout_idle => client_idle_timeout
 - timeout_linger => client_linger_timeout
 
-The goal besides consistent naming is to also increase clarity regarding the role of each timeout, and make it easier for new timeouts to be added in this model. It should also help better define how they relate to the differences between http/1 and h2, or in broader terms http/1 and stream-based protocols.
+The goal besides consistent naming is to also increase clarity regarding
+the role of each timeout, and make it easier for new timeouts to be added
+in this model. It should also help better define how they relate to the
+differences between http/1 and h2, or in broader terms http/1 and stream-based
+protocols.
 
 ## New timeouts to consider
 
 - bereq_send_timeout (wanted by both UPLEX and Varnish Software)
 - req_fetch_timeout (wanted by both UPLEX and Varnish Software)
-- beresp_fetch_timeout (Varnish Software use case, would be the equivalent of a last_byte_timeout if that existed)
+- beresp_fetch_timeout (Varnish Software use case, would be the equivalent
+  of a last_byte_timeout if that existed)
 - pipe_sess_timeout (Varnish Software use case)
 
-New timeouts could have a default value of zero (no timeout) to maintain existing behavior.
+New timeouts could have a default value of zero (no timeout) to maintain
+existing behavior.
 
 ## Other considerations
 
@@ -136,7 +142,8 @@ its successor beresp_idle_timeout should remain.
 
 The title of this section doesn't leave much to say here, yet.
 
-The VCL versions 4.0 and 4.1 need to support the established timeout names as aliases to the new ones.
+The VCL versions 4.0 and 4.1 need to support the established timeout names
+as aliases to the new ones.
 
 Below is the complete list of suggested timeouts:
 
@@ -157,7 +164,8 @@ Below is the complete list of suggested timeouts:
 - resp_send_timeout
 - thread_pool_timeout
 
-We propose that everything except cli_resp_timeout and thread_pool_timeout are exposed to VCL.
+We propose that everything except cli_resp_timeout and thread_pool_timeout are exposed
+to VCL.
 
 For client_*_timeout, would they ideally be accessible from a new vcl_sess subroutine?
 
