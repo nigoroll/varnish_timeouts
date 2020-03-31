@@ -68,7 +68,6 @@ my %new = map {$_ => '(new)'}
      ));
 
 my @controversial = (qw(
-    pipe_idle_timeout
     resp_write_timeout
     ));
 

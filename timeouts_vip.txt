@@ -35,7 +35,8 @@ In alphabetic order:
 - connect_timeout => backend_connect_timeout
 - first_byte_timeout => beresp_start_timeout
 - idle_send_timeout => resp_write_timeout, or replaced by self-tuning (see below)
-- pipe_timeout => pipe_idle_timeout, or replaced by backend_idle_timeout
+- pipe_timeout => pipe_idle_timeout, or replaced by
+  backend_idle_timeout (see below)
 - send_timeout => resp_send_timeout
 - thread_pool_timeout => no change
 - timeout_idle => client_idle_timeout
@@ -134,6 +135,25 @@ If we keep idle_send_timeout as resp_write_timeout we will also need more
 
 Because historically we have given control over between_bytes_timeout,
 its successor beresp_read_timeout should remain.
+
+### On pipe_idle_timeout (old: pipe_timeout)
+
+pipe_idle_timeout is similar to backend_idle_timeout in that it
+constitutes the maximum time to *wait for more data*, which is similar
+to *wait for another request*.
+
+Also, in pipe mode, backend_idle_timeout has no meaning.
+
+Thus, it would make sense to only have one parameter for pipe /
+non-pipe mode, which would be backend_idle_timeout as it is more
+generic.
+
+The counter-argument for having both is that changing
+backend_idle_timeout requires setting it from vcl, while separate
+parameters can more suitable defaults.
+
+We thus suggest to keep both parameters despite the somehow
+overlapping semantics.
 
 ### Expose all relevant timeouts to VCL
 
