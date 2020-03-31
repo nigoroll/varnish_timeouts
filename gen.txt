@@ -3,6 +3,7 @@ NEW                      OLD/NEW/DONTHAVE
 backend_connect_timeout  connect_timeout
 backend_idle_timeout     backend_idle_timeout
 bereq_send_timeout       (new)
+bereq_write_timeout      x
 beresp_fetch_timeout     (new)
 beresp_read_timeout      between_bytes_timeout
 beresp_start_timeout     first_byte_timeout
@@ -14,12 +15,11 @@ req_fetch_timeout        (new)
 req_read_timeout         x
 req_start_timeout        x
 resp_send_timeout        send_timeout
-
-REMOVED:
-idle_send_timeout
+resp_write_timeout       idle_send_timeout
 
 CONTROVERSIAL:
 pipe_idle_timeout
+resp_write_timeout
 
 OTHER:
 cli_resp_timeout

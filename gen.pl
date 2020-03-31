@@ -14,6 +14,7 @@ my %types = (
 
     'send'	=> [qw(
 		    send
+		    write
 		    )],
 
     'recv'	=> [qw(
@@ -45,7 +46,7 @@ my %old2new = (
     'cli_timeout' => 'cli_resp_timeout',
     'connect_timeout' => 'backend_connect_timeout',
     'first_byte_timeout' => 'beresp_start_timeout',
-    'idle_send_timeout' => undef,
+    'idle_send_timeout' => 'resp_write_timeout',
     'pipe_timeout' => 'pipe_idle_timeout',
     'send_timeout' => 'resp_send_timeout',
     'thread_pool_timeout' => 'thread_pool_timeout',
@@ -68,6 +69,7 @@ my %new = map {$_ => '(new)'}
 
 my @controversial = (qw(
     pipe_idle_timeout
+    resp_write_timeout
     ));
 
 my %seen;
