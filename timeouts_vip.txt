@@ -173,10 +173,14 @@ as aliases to the new ones.
 * XXX fill in paramter list from gen.txt which we did not maintain
   properly anyway
 
+* XXX For client_*_timeout, would they ideally be accessible from a
+  new vcl_sess subroutine?
+
+  -> would still need them on the client side (also) because setting
+     them might depend on things like the request just seen, a cookie etc.
+
 We propose that everything except cli_resp_timeout and thread_pool_timeout are exposed
 to VCL.
-
-For client_*_timeout, would they ideally be accessible from a new vcl_sess subroutine?
 
 ### XXX ESI
 
