@@ -18,7 +18,6 @@ resp_send_timeout        send_timeout
 resp_write_timeout       idle_send_timeout
 
 CONTROVERSIAL:
-pipe_idle_timeout
 resp_write_timeout
 
 OTHER:
