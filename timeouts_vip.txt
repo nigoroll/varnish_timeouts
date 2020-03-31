@@ -33,7 +33,7 @@ In alphabetic order:
 - between_bytes_timeout => beresp_idle_timeout
 - cli_timeout => cli_resp_timeout
 - connect_timeout => backend_connect_timeout
-- first_byte_timeout => beresp_firstbyte_timeout (or beresp_start_timeout)
+- first_byte_timeout => beresp_start_timeout
 - idle_send_timeout => resp_idle_timeout, or replaced by self-tuning (see below)
 - pipe_timeout => pipe_idle_timeout
 - send_timeout => resp_send_timeout
@@ -148,10 +148,10 @@ as aliases to the new ones.
 Below is the complete list of suggested timeouts:
 
 - backend_connect_timeout
-- backend_idle_timeout 
+- backend_idle_timeout
 - backend_task_timeout
 - bereq_send_timeout
-- beresp_firstbyte_timeout
+- beresp_start_timeout
 - beresp_idle_timeout
 - beresp_fetch_timeout
 - client_idle_timeout

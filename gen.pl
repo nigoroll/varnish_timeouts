@@ -14,7 +14,7 @@ my %types = (
 		    )],
 
     'recv'	=> [qw(
-		    firstbyte
+		    start
 		    fetch
 		    )],
 
@@ -40,7 +40,7 @@ my %old2new = (
     'between_bytes_timeout' => 'beresp_idle_timeout',
     'cli_timeout' => 'cli_resp_timeout',
     'connect_timeout' => 'backend_connect_timeout',
-    'first_byte_timeout' => 'beresp_firstbyte_timeout',
+    'first_byte_timeout' => 'beresp_start_timeout',
     'idle_send_timeout' => 'resp_idle_timeout',
     'pipe_timeout' => 'pipe_idle_timeout',
     'send_timeout' => 'resp_send_timeout',
