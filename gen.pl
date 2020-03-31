@@ -1,3 +1,6 @@
+use strict;
+use warnings;
+
 my %types = (
     'conn_in'	=> [qw(
 		    idle
@@ -60,13 +63,19 @@ my %new = map {$_ => '(new)'}
      pipe_sess_timeout
      ));
 
+my @controversial = (qw(
+    pipe_idle_timeout
+    beresp_idle_timeout
+    resp_idle_timeout
+    ));
+
 my %seen;
 
 my $fmt = "%-25s%s";
 printf("\n${fmt}\n", 'NEW', 'OLD/NEW/DONTHAVE');
 
-for $s (sort keys %subjs) {
-    for $t (sort @{$types{$subjs{$s}}}) {
+for my $s (sort keys %subjs) {
+    for my $t (sort @{$types{$subjs{$s}}}) {
 	my $n = $s . '_' . $t . '_timeout';
 	my $old;
 	$old = $new2old{$n};
@@ -79,8 +88,16 @@ for $s (sort keys %subjs) {
     }
 }
 
-print "\n";
+my $line = 0;
+for my $n (sort @controversial) {
+    printf("\nCONTROVERSIAL:\n") if ($line++ == 0);
+    printf("%s\n", $n);
+    $seen{$n} = 1;
+}
+
+$line = 0;
 for my $n (sort (keys %new2old, keys %new)) {
     next if $seen{$n};
-    printf("other:\t%s\n", $n);
+    printf("\nOTHER:\n") if ($line++ == 0);
+    printf("%s\n", $n);
 }
