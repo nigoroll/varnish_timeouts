@@ -13,8 +13,11 @@ req_fetch_timeout        (new)
 req_start_timeout        x
 resp_send_timeout        send_timeout
 
-OTHER:
+CONTROVERSIAL:
 beresp_idle_timeout
-cli_resp_timeout
+pipe_idle_timeout
 resp_idle_timeout
+
+OTHER:
+cli_resp_timeout
 thread_pool_timeout
