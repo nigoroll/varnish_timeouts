@@ -1,19 +1,40 @@
-my @subj = (qw(
-	    client
-	    backend
-	    beresp
-	    resp
-	    pipe
-	    ));
+my %types = (
+    'conn_in'	=> [qw(
+		    idle
+		    linger
+		    )],
 
-my @typ = (qw(
-	   send
-	   fetch
-	   idle
-	   linger
-	   ));
+    'conn_out'	=> [qw(
+		    connect
+		    idle
+		    )],
 
-# from Mapping existing timeouts
+    'send'	=> [qw(
+		    send
+		    )],
+
+    'recv'	=> [qw(
+		    firstbyte
+		    fetch
+		    )],
+
+    'pipe'	=> [qw(
+		    sess
+		    idle
+		    )],
+    );
+
+my %subjs = (
+    'client'	=> 'conn_in',
+    'backend'	=> 'conn_out',
+    'pipe'	=> 'pipe',
+    'req'	=> 'recv',
+    'bereq'	=> 'send',
+    'resp'	=> 'send',
+    'beresp'	=> 'recv'
+    );
+
+# from ## Mapping existing timeouts
 my %old2new = (
     'backend_idle_timeout' => 'backend_idle_timeout',
     'between_bytes_timeout' => 'beresp_idle_timeout',
@@ -30,7 +51,7 @@ my %old2new = (
 
 my %new2old = map {$old2new{$_} => $_} keys %old2new;
 
-# from "New timeouts to consider"
+# from ## New timeouts to consider
 my %new = map {$_ => '(new)'}
     (qw(
      bereq_send_timeout
@@ -41,17 +62,18 @@ my %new = map {$_ => '(new)'}
 
 my %seen;
 
-printf("\n%-20s\t%s\n", 'NEW', 'OLD/NEW/DONTHAVE');
+my $fmt = "%-25s%s";
+printf("\n${fmt}\n", 'NEW', 'OLD/NEW/DONTHAVE');
 
-for $s (sort @subj) {
-    for $t (sort @typ) {
+for $s (sort keys %subjs) {
+    for $t (sort @{$types{$subjs{$s}}}) {
 	my $n = $s . '_' . $t . '_timeout';
 	my $old;
 	$old = $new2old{$n};
 	$old = $new{$n} unless (defined ($old));
 	$old = 'x' unless (defined ($old));
 
-	printf("%-20s\t%s\n", $n, $old);
+	printf("${fmt}\n", $n, $old);
 
 	$seen{$n} = 1;
     }
