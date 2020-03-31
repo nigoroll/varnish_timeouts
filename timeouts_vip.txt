@@ -190,7 +190,8 @@ of that parameter is deduced.
 
 So, for example, req_fetch_timeout is to fetch the entire request,
 including the body. When we enter vcl_recv, time has already passed
-for fetching the request, and that time is deduced for
+for fetching the request headers (and possibly (part of) the body,
+depending on buffering), and that time is deduced for
 req.fetch_timeout.
 
 Likewise for ESI, resp.send_timeout at esi level 0 is the time for the
