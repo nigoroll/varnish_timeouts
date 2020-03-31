@@ -162,24 +162,16 @@ The title of this section doesn't leave much to say here, yet.
 The VCL versions 4.0 and 4.1 need to support the established timeout names
 as aliases to the new ones.
 
-Below is the complete list of suggested timeouts:
+* XXX rename vcl sess.* -> client.* _or_ rename parameters client_* ->
+  sess_*
 
-- backend_connect_timeout
-- backend_idle_timeout
-- backend_task_timeout
-- bereq_send_timeout
-- beresp_start_timeout
-- beresp_read_timeout
-- beresp_fetch_timeout
-- client_idle_timeout
-- client_linger_timeout
-- client_task_timeout
-- cli_resp_timeout
-- pipe_idle_timeout
-- pipe_sess_timeout
-- req_fetch_timeout
-- resp_send_timeout
-- thread_pool_timeout
+* XXX backend_connect_timeout & backend_idle_timeout
+
+  -> expose to vcl as backend.connect_timeout / backend.idle_timeout?
+  -> or transfer ownership to directors?
+
+* XXX fill in paramter list from gen.txt which we did not maintain
+  properly anyway
 
 We propose that everything except cli_resp_timeout and thread_pool_timeout are exposed
 to VCL.
