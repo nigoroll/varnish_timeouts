@@ -179,9 +179,47 @@ as aliases to the new ones.
   -> would still need them on the client side (also) because setting
      them might depend on things like the request just seen, a cookie etc.
 
-We propose that everything except cli_resp_timeout and thread_pool_timeout are exposed
-to VCL.
+We propose that everything except cli_resp_timeout and
+thread_pool_timeout are exposed to VCL.
 
-### XXX ESI
+### How timeouts behave for VCL
 
-TODO: Define how timeouts apply recursively to subrequests
+In general, when timeouts are read from VCL for the first time, the
+time which might already have passed since the beginning of the scope
+of that parameter is deduced.
+
+So, for example, req_fetch_timeout is to fetch the entire request,
+including the body. When we enter vcl_recv, time has already passed
+for fetching the request, and that time is decued for
+req.fetch_timeout.
+
+Likewise for ESI, resp.send_timeout at esi level 0 is the time for the
+entirity of the ESI response. At lower levels, it is the time
+(remaining) for that sub-request and all below. We are aware that
+these calculations are affected by buffering, in that a lower level
+vcl_deliver may be called as soon as bytes to send have been handled
+to the kernel or buffered by some lower level protocol like QUIC.
+
+### Additional timeouts can be implemented in VCL
+
+This VIP aims to add all required building blocks to implement
+arbitrary timeouts. Based on these, additional timeouts can be
+calculated in vcl. For example, to limit the total time for a backend
+request to take, the fetch timeout can be set dynamically (using the
+constant & taskvar vmods in this example)::
+
+	sub vcl_init {
+		new bereq_total_timeout = constant.duration(1m);
+		new bereq_start = taskvar.time();
+	}
+
+	sub vcl_backend_fetch {
+		bereq_start.set(now);
+		set bereq.send_timeout = bereq_total_timeout.get();
+	}
+
+	sub vcl_backend_response {
+		# goes directly to error if negative
+		set beresp.fetch_timeout = bereq_total_timeout.get() -
+		    (now - bereq_start.get());
+	}
