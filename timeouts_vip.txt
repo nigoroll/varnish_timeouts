@@ -45,10 +45,10 @@ The goal besides consistent naming is to also increase clarity regarding the rol
 
 ## New timeouts to consider
 
-- bereq_send_timeout (suggested by slink. dridi: can slow clients DoS a backend with request bodies today? dridi: the answer is yes)
-- req_fetch_timeout (for std.cache_req_body? getting the whole request on the client side dridi: may also affect the fetch, see above (for no cache_req_body (yes)))
-- beresp_fetch_timeout (VS end-user case)
-- pipe_sess_timeout (VS end-user case)
+- bereq_send_timeout (wanted by both UPLEX and Varnish Software)
+- req_fetch_timeout (wanted by both UPLEX and Varnish Software)
+- beresp_fetch_timeout (Varnish Software use case, would be the equivalent of a last_byte_timeout if that existed)
+- pipe_sess_timeout (Varnish Software use case)
 
 New timeouts could have a default value of zero (no timeout) to maintain existing behavior.
 
@@ -56,40 +56,42 @@ New timeouts could have a default value of zero (no timeout) to maintain existin
 
 Taken from past and current discussions.
 
-### issues with idle_send_timeout (old name) / resp_idle_timeout (new name)
+### Issues with idle_send_timeout
 
 current defaults:
 
-- idle_send_timeout (old) / resp_idle_timeout (new) : 60s
+- idle_send_timeout (old) / resp_idle_timeout (new): 60s
 - send_timeout (old) / resp_send_timeout (new): 600s
 
 current behavior:
 
-(resp_)?send_timeout is our actual timeout from the user
-perspective. idle_send_timeout/resp_idle_timeout is used to set
-SO_SNDTIMEO, so individual writev() calls time out after that time.
+send_timeout is our current and actual timeout from the user
+perspective. idle_send_timeout is used to set SO_SNDTIMEO, so
+individual writev() calls time out after that time.
 
 issues:
 
-- idle_send_timeout/resp_idle_timeout is hard to understand and causes
-  confusion.
+- idle_send_timeout is hard to understand and causes  confusion.
 
-  The new names might help improve on that, yet a new clash might also
-  be introduced with backend_idle_timeout / client_idle_timeout (which
-  define the time to wait for another request) and pipe_idle_timeout
-  (which defines the time to wait for more data).
+  The new name, resp_idle_timeout, might help improve on that, yet a
+  new clash might also be introduced with backend_idle_timeout /
+  client_idle_timeout (which define the time to wait for another request)
+  and pipe_idle_timeout (which defines the time to wait for more data).
 
-- what should it be set to?
+- What should it be set to?
 
   Users might ask themselves: what is a good value? Many users
   probably will not set it at all or set it to arbitrarily bad values.
 
-- can extend (resp_)?send_timeout
+  This is probably an indication that this timeout should be handled
+  internally and not offer a knob hardly anyone knows how to push.
 
-  for the case of a write just before (resp_)?send_timeout, that
-  actually gets extended by idle_send_timeout/resp_idle_timeout
+- Can extend send_timeout
 
-- are we actually saving syscalls?
+  For the case of a write just before send_timeout, that actually gets
+  extended by up to idle_send_timeout.
+
+- Are we actually saving syscalls?
 
   We currently set SO_SNDTIMEOUT just once per session (if not updated
   in vcl). For the case where we actually reach (resp_)?send_timeout,
@@ -97,27 +99,26 @@ issues:
 
   So we save syscalls for the fast path, yet not for the slow/error path.
 
-suggestion:
+Suggestion:
 
 For the first three reasons given above, we suggest to drop
-idle_send_timeout/resp_idle_timeout altogether. The timeout should
-(resp_)?send_timeout and that's it.
+idle_send_timeout altogether. The timeout should resp_send_timeout and
+that's it.
 
 A trivial approach would, before any write, calculate the remaining
-time until (resp_)?send_timeout is reached and set SO_SNDTIMEO
-accordingly.
+time until resp_send_timeout is reached and set SO_SNDTIMEO accordingly.
 
 This would add additional syscalls to the fast path, which we want to
-avoid. Yet in order to stay within (resp_)?send_timeout, we would need
-to update SO_SNDTIMEO after the first write at the latest.
+avoid. Yet in order to stay within resp_send_timeout, we would need to
+update SO_SNDTIMEO after the first write at the latest.
 
 As a compromise, we suggest a divide-and-conquer strategy:
 
-* initially, set SO_SNDTIMEO to (resp_)?send_timeout / 2 and remember
-  a mono timestamp when that timeout would fire
+* Initially, set SO_SNDTIMEO to (resp_)?send_timeout / 2 and remember
+  a mono timestamp when that timeout would fire.
 
-* before each write, check if the time SO_SNDTIMEO would fire is past
-  the deadline from (resp_)?send_timeout and, if yes, set SO_SNDTIMEO
+* Before each write, check if the time SO_SNDTIMEO would fire is past
+  the deadline from resp_send_timeout and, if yes, set SO_SNDTIMEO
   half the remaining time again (with some lower bound at which
   halving is stopped, e.g. 1 second).
 
@@ -125,14 +126,19 @@ This way, the fast path will be unaffected and not include additional
 syscalls, yet the divide-and-conquer strategy will result in less
 syscalls overall than a fixed (low) SO_SNDTIMEO.
 
+If we keep idle_send_timeout as resp_idle_timeout we will also need more
+"idle" timeouts for req_fetch_timeout and bereq_send_timeout.
+
+Because historically we have given control over between_bytes_timeout,
+its successor beresp_idle_timeout should remain.
+
 ### Expose all relevant timeouts to VCL
 
 The title of this section doesn't leave much to say here, yet.
 
 The VCL versions 4.0 and 4.1 need to support the established timeout names as aliases to the new ones.
 
-Timeouts to expose:
-
+Below is the complete list of suggested timeouts:
 
 - backend_connect_timeout
 - backend_idle_timeout 
@@ -144,15 +150,14 @@ Timeouts to expose:
 - client_idle_timeout
 - client_linger_timeout
 - client_task_timeout
-- cli_resp_timeout => no
+- cli_resp_timeout
 - pipe_idle_timeout
 - pipe_sess_timeout
 - req_fetch_timeout
-- resp_idle_timeout
 - resp_send_timeout
-- thread_pool_timeout => no
+- thread_pool_timeout
 
-In other words, everything except cli_resp_timeout and thread_pool_timeout.
+We propose that everything except cli_resp_timeout and thread_pool_timeout are exposed to VCL.
 
 For client_*_timeout, would they ideally be accessible from a new vcl_sess subroutine?
 
