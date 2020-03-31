@@ -34,7 +34,7 @@ In alphabetic order:
 - cli_timeout => cli_resp_timeout
 - connect_timeout => backend_connect_timeout
 - first_byte_timeout => beresp_start_timeout
-- idle_send_timeout => resp_idle_timeout, or replaced by self-tuning (see below)
+- idle_send_timeout => resp_read_timeout, or replaced by self-tuning (see below)
 - pipe_timeout => pipe_idle_timeout, or replaced by backend_idle_timeout
 - send_timeout => resp_send_timeout
 - thread_pool_timeout => no change
@@ -66,7 +66,7 @@ Taken from past and current discussions.
 
 Current defaults:
 
-- idle_send_timeout (old) / resp_idle_timeout (new): 60s
+- idle_send_timeout (old) / resp_read_timeout (new): 60s
 - send_timeout (old) / resp_send_timeout (new): 600s
 
 Current behavior:
@@ -79,7 +79,7 @@ Issues:
 
 - idle_send_timeout is hard to understand and causes  confusion.
 
-  The new name, resp_idle_timeout, might help improve on that, yet a
+  The new name, resp_read_timeout, might help improve on that, yet a
   new clash might also be introduced with backend_idle_timeout /
   client_idle_timeout (which define the time to wait for another request)
   and pipe_idle_timeout (which defines the time to wait for more data).
@@ -100,15 +100,15 @@ Issues:
 - Are we actually saving syscalls?
 
   We currently set SO_SNDTIMEOUT just once per session (if not updated
-  in vcl). For the case where we actually reach (resp_)?send_timeout,
-  we will retry (with the default values) a write 10 times.
+  in vcl). For the case where we actually reach send_timeout, we will
+  retry (with the default values) a write 10 times.
 
   So we save syscalls for the fast path, yet not for the slow/error path.
 
 Suggestion:
 
 For the first three reasons given above, we suggest to drop
-idle_send_timeout altogether. The timeout should resp_send_timeout and
+idle_send_timeout altogether. The timeout should be resp_send_timeout and
 that's it.
 
 A trivial approach would, before any write, calculate the remaining
@@ -120,7 +120,7 @@ update SO_SNDTIMEO after the first write at the latest.
 
 As a compromise, we suggest a divide-and-conquer strategy:
 
-* Initially, set SO_SNDTIMEO to (resp_)?send_timeout / 2 and remember
+* Initially, set SO_SNDTIMEO to resp_send_timeout / 2 and remember
   a mono timestamp when that timeout would fire.
 
 * Before each write, check if the time SO_SNDTIMEO would fire is past
@@ -132,8 +132,8 @@ This way, the fast path will be unaffected and not include additional
 syscalls, yet the divide-and-conquer strategy will result in less
 syscalls overall than a fixed (low) SO_SNDTIMEO.
 
-If we keep idle_send_timeout as resp_idle_timeout we will also need more
-"idle" timeouts for req_fetch_timeout and bereq_send_timeout.
+If we keep idle_send_timeout as resp_read_timeout we will also need more
+"read" timeouts for req_fetch_timeout and bereq_send_timeout.
 
 Because historically we have given control over between_bytes_timeout,
 its successor beresp_read_timeout should remain.
