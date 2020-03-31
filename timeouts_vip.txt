@@ -64,18 +64,18 @@ Taken from past and current discussions.
 
 ### Issues with idle_send_timeout
 
-current defaults:
+Current defaults:
 
 - idle_send_timeout (old) / resp_idle_timeout (new): 60s
 - send_timeout (old) / resp_send_timeout (new): 600s
 
-current behavior:
+Current behavior:
 
 send_timeout is our current and actual timeout from the user
 perspective. idle_send_timeout is used to set SO_SNDTIMEO, so
 individual writev() calls time out after that time.
 
-issues:
+Issues:
 
 - idle_send_timeout is hard to understand and causes  confusion.
 
