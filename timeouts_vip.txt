@@ -34,7 +34,7 @@ In alphabetic order:
 - cli_timeout => cli_resp_timeout
 - connect_timeout => backend_connect_timeout
 - first_byte_timeout => beresp_start_timeout
-- idle_send_timeout => resp_read_timeout, or replaced by self-tuning (see below)
+- idle_send_timeout => resp_write_timeout, or replaced by self-tuning (see below)
 - pipe_timeout => pipe_idle_timeout, or replaced by backend_idle_timeout
 - send_timeout => resp_send_timeout
 - thread_pool_timeout => no change
@@ -66,7 +66,7 @@ Taken from past and current discussions.
 
 Current defaults:
 
-- idle_send_timeout (old) / resp_read_timeout (new): 60s
+- idle_send_timeout (old) / resp_write_timeout (new): 60s
 - send_timeout (old) / resp_send_timeout (new): 600s
 
 Current behavior:
@@ -79,10 +79,7 @@ Issues:
 
 - idle_send_timeout is hard to understand and causes  confusion.
 
-  The new name, resp_read_timeout, might help improve on that, yet a
-  new clash might also be introduced with backend_idle_timeout /
-  client_idle_timeout (which define the time to wait for another request)
-  and pipe_idle_timeout (which defines the time to wait for more data).
+  The new name, resp_write_timeout, might help improve on that.
 
 - What should it be set to?
 
@@ -132,7 +129,7 @@ This way, the fast path will be unaffected and not include additional
 syscalls, yet the divide-and-conquer strategy will result in less
 syscalls overall than a fixed (low) SO_SNDTIMEO.
 
-If we keep idle_send_timeout as resp_read_timeout we will also need more
+If we keep idle_send_timeout as resp_write_timeout we will also need more
 "read" timeouts for req_fetch_timeout and bereq_send_timeout.
 
 Because historically we have given control over between_bytes_timeout,
