@@ -9,32 +9,43 @@ In the form of: ${subject}_${type}_timeout
 Subjects:
 
 - client (client session)
-- backend (backend transaction)
-- beresp
+- backend (backend context)
+- req
 - resp
+- bereq
+- beresp
 - pipe
 - cli
+- thread
 
 We might want to consider new timeouts too, especially for req and bereq (see below).
 
 Types:
 
-- send
-- fetch
-- idle
-- linger
-- ...
+- task (complete client, backend or pipe task)
+- send (complete send of a message)
+- fetch (complete fetch of a message)
+- start (first byte received)
+- idle (waiting to receive or send more)
+- linger (time before disembarking)
+- pool (time before an unused item leaves a pool)
+
+The "idle" type also has "between_bytes" as a contender.
+
+There is an additional "resp" type that could be confused with the "resp"
+subject (cli_resp_timeout, see below). Better ideas to avoid overloading
+"resp" are welcome. Maybe cli_child_timeout?
 
 ## Mapping existing timeouts
 
 In alphabetic order:
 
 - backend_idle_timeout => backend_pool_timeout
-- between_bytes_timeout => beresp_read_timeout
+- between_bytes_timeout => beresp_idle_timeout
 - cli_timeout => cli_resp_timeout
-- connect_timeout => backend_connect_timeout
+- connect_timeout => beresp_connect_timeout
 - first_byte_timeout => beresp_start_timeout
-- idle_send_timeout => resp_write_timeout
+- idle_send_timeout => resp_idle_timeout
 - pipe_timeout => pipe_idle_timeout
 - send_timeout => resp_send_timeout
 - thread_pool_timeout => no change
