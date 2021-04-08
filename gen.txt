@@ -1,20 +1,24 @@
 
 NEW                      OLD/NEW/DONTHAVE
 backend_connect_timeout  connect_timeout
-backend_idle_timeout     backend_idle_timeout
+backend_pool_timeout     backend_idle_timeout
 bereq_send_timeout       (new)
+bereq_task_timeout       (new)
 bereq_write_timeout      x
 beresp_fetch_timeout     (new)
 beresp_read_timeout      between_bytes_timeout
 beresp_start_timeout     first_byte_timeout
+beresp_task_timeout      x
 client_idle_timeout      timeout_idle
 client_linger_timeout    timeout_linger
 pipe_idle_timeout        pipe_timeout
-pipe_sess_timeout        (new)
+pipe_task_timeout        (new)
 req_fetch_timeout        (new)
 req_read_timeout         x
 req_start_timeout        x
+req_task_timeout         (new)
 resp_send_timeout        send_timeout
+resp_task_timeout        x
 resp_write_timeout       idle_send_timeout
 
 CONTROVERSIAL:

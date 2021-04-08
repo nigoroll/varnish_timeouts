@@ -9,22 +9,24 @@ my %types = (
 
     'conn_out'	=> [qw(
 		    connect
-		    idle
+		    pool
 		    )],
 
     'send'	=> [qw(
+		    task
 		    send
 		    write
 		    )],
 
     'recv'	=> [qw(
+		    task
 		    start
 		    fetch
 		    read
 		    )],
 
     'pipe'	=> [qw(
-		    sess
+		    task
 		    idle
 		    )],
     );
@@ -41,7 +43,7 @@ my %subjs = (
 
 # from ## Mapping existing timeouts
 my %old2new = (
-    'backend_idle_timeout' => 'backend_idle_timeout',
+    'backend_idle_timeout' => 'backend_pool_timeout',
     'between_bytes_timeout' => 'beresp_read_timeout',
     'cli_timeout' => 'cli_resp_timeout',
     'connect_timeout' => 'backend_connect_timeout',
@@ -64,7 +66,9 @@ my %new = map {$_ => '(new)'}
      bereq_send_timeout
      req_fetch_timeout
      beresp_fetch_timeout
-     pipe_sess_timeout
+     pipe_task_timeout
+     req_task_timeout
+     bereq_task_timeout
      ));
 
 my @controversial = (qw(
