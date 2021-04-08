@@ -77,6 +77,24 @@ existing behavior.
 
 Taken from past and current discussions.
 
+### Dedicated parameter tweaks
+
+Timeout parameters currently have a "seconds" unit (side note, why do we use
+plural for "Units" in the manual?) which has some disadvantages. For starters
+it's not possible to specify an actual unit:
+
+    param.set resp_idle_timeout 1m
+
+It's also not clear what a zero timeout would mean between disabled and an
+immediate trigger. With dedicated tweaks we could solve both limitations.
+First, a "duration" tweak that optionally takes an actual unit, or falls back
+to seconds if omitted. Second, a "timeout" tweak that accepts the string
+"disabled" or falls back to a duration.
+
+    param.set pipe_task_timeout disabled
+
+The "duration" tweak could generally replace the "seconds" unit.
+
 ### Expose all relevant timeouts to VCL
 
 The title of this section doesn't leave much to say here, yet.
