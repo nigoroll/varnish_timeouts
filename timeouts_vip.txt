@@ -29,14 +29,13 @@ Types:
 
 In alphabetic order:
 
-- backend_idle_timeout => no change
+- backend_idle_timeout => backend_pool_timeout
 - between_bytes_timeout => beresp_read_timeout
 - cli_timeout => cli_resp_timeout
 - connect_timeout => backend_connect_timeout
 - first_byte_timeout => beresp_start_timeout
 - idle_send_timeout => resp_write_timeout, or replaced by self-tuning (see below)
-- pipe_timeout => pipe_idle_timeout, or replaced by
-  backend_idle_timeout (see below)
+- pipe_timeout => pipe_idle_timeout
 - send_timeout => resp_send_timeout
 - thread_pool_timeout => no change
 - timeout_idle => client_idle_timeout
@@ -53,8 +52,10 @@ protocols.
 - bereq_send_timeout (wanted by both UPLEX and Varnish Software)
 - req_fetch_timeout (wanted by both UPLEX and Varnish Software)
 - beresp_fetch_timeout (Varnish Software use case, would be the equivalent
-  of a last_byte_timeout if that existed)
-- pipe_sess_timeout (Varnish Software use case)
+  of last_byte_timeout from Varnish Enterprise)
+- pipe_task_timeout (Varnish Software use case)
+- req_task_timeout (UPLEX use case)
+- bereq_task_timeout (UPLEX use case)
 
 New timeouts could have a default value of zero (no timeout) to maintain
 existing behavior.
