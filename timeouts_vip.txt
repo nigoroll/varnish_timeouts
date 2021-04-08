@@ -58,6 +58,8 @@ in this model. It should also help better define how they relate to the
 differences between http/1 and h2, or in broader terms http/1 and stream-based
 protocols.
 
+Question: should thread_pool_watchdog become thread_watchdog_timeout?
+
 ## New timeouts to consider
 
 - bereq_send_timeout (wanted by both UPLEX and Varnish Software)
